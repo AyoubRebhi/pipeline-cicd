@@ -1,10 +1,77 @@
 import { NextRequest, NextResponse } from 'next/server';
+export const runtime = 'nodejs';
 import { createClient } from '@supabase/supabase-js';
+import nodemailer from 'nodemailer';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  }
 );
+export const dynamic = 'force-dynamic';
+
+async function sendProposalEmail(options: {
+  toEmail: string;
+  candidateFirstName?: string;
+  candidateLastName?: string;
+  positionTitle?: string;
+  companyName?: string;
+  notes?: string;
+  ticketNumber?: string;
+}) {
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+
+  const fromAddress = process.env.EMAIL_FROM || process.env.SMTP_USER || '';
+
+  const subjectParts = [
+    'You have been proposed for',
+    options.positionTitle ? `${options.positionTitle}` : 'a new opportunity',
+    options.companyName ? `at ${options.companyName}` : '',
+  ].filter(Boolean);
+
+  const subject = subjectParts.join(' ');
+
+  const greetingName = [options.candidateFirstName, options.candidateLastName]
+    .filter(Boolean)
+    .join(' ');
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
+      <p>Hi ${greetingName || 'there'},</p>
+      <p>
+        Great news! You have been proposed for
+        <strong>${options.positionTitle || 'a new role'}</strong>
+        ${options.companyName ? ` at <strong>${options.companyName}</strong>` : ''}.
+        ${options.ticketNumber ? ` (Ticket: <strong>${options.ticketNumber}</strong>)` : ''}
+      </p>
+      ${options.notes ? `<p><strong>Notes from the delivery manager:</strong><br/>${options.notes}</p>` : ''}
+      <p>
+        We will follow up with next steps shortly. If you have any questions, just reply to this email.
+      </p>
+      <p>Best regards,<br/>${fromAddress}</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: fromAddress,
+    to: options.toEmail,
+    subject,
+    html,
+  });
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -115,26 +182,51 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if ticket exists
-    const { data: ticket, error: ticketError } = await supabase
+    console.log('[placements.POST] Incoming create request', { ticket_id, profiler_id });
+    let { data: ticket, error: ticketError } = await supabase
       .from('tickets')
-      .select('id, required_skills, preferred_skills')
+      .select('id, required_skills, preferred_skills, position_title, client_company, ticket_number')
       .eq('id', ticket_id)
       .single();
 
-    if (ticketError || !ticket) {
-      return NextResponse.json({ 
-        error: 'Invalid ticket ID' 
-      }, { status: 400 });
+    if (ticketError) {
+      console.error('[placements.POST] Supabase ticket fetch error:', ticketError);
+    }
+
+    if (!ticket) {
+      console.error('[placements.POST] No ticket found for id:', ticket_id);
+      const { data: ticketByNumber, error: ticketByNumberError } = await supabase
+        .from('tickets')
+        .select('id, required_skills, preferred_skills, position_title, client_company, ticket_number')
+        .eq('ticket_number', ticket_id)
+        .single();
+
+      if (ticketByNumberError) {
+        console.error('[placements.POST] Ticket by number fetch error:', ticketByNumberError);
+      }
+
+      if (!ticketByNumber) {
+        return NextResponse.json({ 
+          error: 'Invalid ticket ID',
+          details: `No ticket found for id or ticket_number: ${ticket_id}`
+        }, { status: 400 });
+      }
+
+      ticket = ticketByNumber;
     }
 
     // Check if profiler exists
     const { data: profiler, error: profilerError } = await supabase
       .from('profilers')
-      .select('id, skills')
+      .select('id, skills, first_name, last_name, email')
       .eq('id', profiler_id)
       .single();
 
-    if (profilerError || !profiler) {
+    if (profilerError) {
+      console.error('[placements.POST] Supabase profiler fetch error:', profilerError);
+    }
+    if (!profiler) {
+      console.error('[placements.POST] No profiler found for id:', profiler_id);
       return NextResponse.json({ 
         error: 'Invalid profiler ID' 
       }, { status: 400 });
@@ -189,6 +281,23 @@ export async function POST(request: NextRequest) {
         changed_by: assigned_by,
         notes: 'Placement created'
       });
+
+    // Attempt to send email to the candidate, but do not block the response if it fails
+    try {
+      if (profiler?.email) {
+        await sendProposalEmail({
+          toEmail: profiler.email,
+          candidateFirstName: profiler.first_name || undefined,
+          candidateLastName: profiler.last_name || undefined,
+          positionTitle: ticket?.position_title || undefined,
+          companyName: (ticket?.client_company as string | undefined) || undefined,
+          notes: notes || undefined,
+          ticketNumber: ticket?.ticket_number || undefined,
+        });
+      }
+    } catch (emailErr) {
+      console.error('Failed to send proposal email:', emailErr);
+    }
 
     return NextResponse.json({ placement: data }, { status: 201 });
 
