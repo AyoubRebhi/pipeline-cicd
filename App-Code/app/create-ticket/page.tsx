@@ -91,22 +91,28 @@ export default function CreateTicketPage() {
   const [preferredSkillInput, setPreferredSkillInput] = useState("")
 
   const addSkill = (type: 'required' | 'preferred') => {
-    const input = type === 'required' ? skillInput : preferredSkillInput
-    if (input.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        [type === 'required' ? 'requiredSkills' : 'preferredSkills']: [
-          ...prev[type === 'required' ? 'requiredSkills' : 'preferredSkills'],
-          input.trim()
-        ]
-      }))
-      if (type === 'required') {
-        setSkillInput("")
-      } else {
-        setPreferredSkillInput("")
-      }
+  const input = type === 'required' ? skillInput : preferredSkillInput;
+  if (input.trim()) {
+    // Split by comma, trim each, filter out empty
+    const skillsToAdd = input
+      .split(',')
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+
+    setFormData(prev => ({
+      ...prev,
+      [type === 'required' ? 'requiredSkills' : 'preferredSkills']: [
+        ...prev[type === 'required' ? 'requiredSkills' : 'preferredSkills'],
+        ...skillsToAdd
+      ]
+    }));
+    if (type === 'required') {
+      setSkillInput("");
+    } else {
+      setPreferredSkillInput("");
     }
   }
+};
 
   const removeSkill = (index: number, type: 'required' | 'preferred') => {
     setFormData(prev => ({
