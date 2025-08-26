@@ -35,6 +35,14 @@ pipeline {
                 }
             }
         }
+
+        stage('Build Docker Image') {
+            steps {
+                dir('App-Code') {
+                    sh 'docker build -t my-app:latest .'
+                }
+            }
+        }
     }
 
     post {

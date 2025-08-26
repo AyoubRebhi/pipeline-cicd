@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { generateId } from "@/lib/utils"
-import { assessmentStore } from "../upload/route"
+import { assessmentStore } from "@/lib/assessment-store"
 
 export async function POST(request: NextRequest) {
   try {
