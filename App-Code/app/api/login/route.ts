@@ -1,6 +1,6 @@
 import { getSignInUrl } from '@workos-inc/authkit-nextjs';
 import { NextResponse } from 'next/server';
-
+export const dynamic = 'force-dynamic'
 export const GET = async () => {
   console.log('Login route: Starting fresh authentication');
   

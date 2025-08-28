@@ -6,11 +6,6 @@ node_modules
 .next
 out
 
-# Local env and secrets
-.env
-.env.*
-!.env.example
-
 # VCS
 .git
 .gitignore

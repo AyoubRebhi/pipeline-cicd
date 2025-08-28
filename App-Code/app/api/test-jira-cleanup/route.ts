@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cleanupDeletedJiraTickets } from '@/lib/jira-sync-service'
 
+export const dynamic = 'force-dynamic'
+
 // Create a Supabase client with service role key
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -43,11 +45,16 @@ export async function GET(request: NextRequest) {
           throw new Error(`Error fetching placements: ${placementsError.message}`)
         }
         
-        // Check foreign key constraints
-        const { data: constraints, error: constraintsError } = await supabaseAdmin
-          .rpc('check_foreign_key_constraints')
-          .then(result => ({ data: null, error: null })) // RPC might not exist, that's okay
-          .catch(() => ({ data: null, error: null }))
+        // Check foreign key constraints - handle potential RPC function not existing
+        let constraintsData = null
+        let constraintsError = null
+        try {
+          const result = await supabaseAdmin.rpc('check_foreign_key_constraints')
+          constraintsData = result.data
+          constraintsError = result.error
+        } catch (error) {
+          console.log('RPC function check_foreign_key_constraints not available, continuing without it')
+        }
         
         return NextResponse.json({
           success: true,
@@ -62,7 +69,8 @@ export async function GET(request: NextRequest) {
             placements: placements?.map(p => ({
               id: p.id,
               ticket_id: p.ticket_id
-            })) || []
+            })) || [],
+            constraints_check: constraintsError ? 'RPC function not available' : 'Checked'
           }
         })
         
@@ -109,4 +117,4 @@ export async function GET(request: NextRequest) {
       details: 'Check server logs for more information'
     }, { status: 500 })
   }
-} 
+}

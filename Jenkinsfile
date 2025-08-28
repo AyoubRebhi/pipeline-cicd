@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'dev', url: 'https://github.com/AyoubRebhi/pipeline-cicd'
+                git branch: '*', url: 'https://github.com/AyoubRebhi/pipeline-cicd'
             }
         }
 

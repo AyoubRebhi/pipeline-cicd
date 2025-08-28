@@ -5,7 +5,7 @@ import type { Industry } from "@/lib/industry-detection"
 import { assessmentStorage } from "@/lib/storage"
 import { courseRecommendationsCache } from "@/lib/course-recommendations-cache"
 import { supabase } from "@/lib/supabase"
-
+export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     // Get assessment ID from the URL

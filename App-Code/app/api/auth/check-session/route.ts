@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@workos-inc/authkit-nextjs';
-
+export const dynamic = 'force-dynamic'
 // This endpoint checks if the current user session is valid
 export async function GET(request: NextRequest) {
   try {

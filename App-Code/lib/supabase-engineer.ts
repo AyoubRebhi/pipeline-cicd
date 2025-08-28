@@ -162,6 +162,33 @@ export async function getIngenieurWithCompetences() {
     throw new Error(`Impossible de récupérer les ingénieurs: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
   }
 }
+export async function getAllTeams() {
+  if (!process.env.NEXT_PUBLIC_ENGINEER_SUPABASE_URL || !process.env.NEXT_PUBLIC_ENGINEER_SUPABASE_ANON_KEY) {
+    return [
+      { equipe_id: 1, nom_equipe: 'Core Engineering' },
+      { equipe_id: 2, nom_equipe: 'Frontend Specialists' },
+      { equipe_id: 3, nom_equipe: 'Data & AI' },
+      { equipe_id: 4, nom_equipe: 'Cloud & DevOps' }
+    ]
+  }
+
+  const { data, error } = await engineerSupabase
+    .from('equipes')
+    .select('equipe_id, nom_equipe')
+    .order('nom_equipe', { ascending: true })
+
+  if (error) {
+    console.warn('Erreur récupération équipes, returning fallback:', error.message)
+    return [
+      { equipe_id: 1, nom_equipe: 'Core Engineering' },
+      { equipe_id: 2, nom_equipe: 'Frontend Specialists' },
+      { equipe_id: 3, nom_equipe: 'Data & AI' },
+      { equipe_id: 4, nom_equipe: 'Cloud & DevOps' }
+    ]
+  }
+
+  return data || []
+}
 
 // Fonction pour récupérer les compétences d'un ingénieur
 async function getCompetencesIngenieur(ingenieurId: string) {

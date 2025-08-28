@@ -1,7 +1,7 @@
 import { handleAuth } from '@workos-inc/authkit-nextjs';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-
+export const dynamic = 'force-dynamic'
 // Handle authentication callback from WorkOS with custom handling
 export const GET = async (request: NextRequest) => {
   console.log('Auth callback: Processing authentication');

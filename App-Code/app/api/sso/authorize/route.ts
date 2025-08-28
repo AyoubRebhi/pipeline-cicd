@@ -1,9 +1,8 @@
 // This file is no longer needed as we're using an external backend service for SSO authorization.
 // The SSO authorization is now handled by the backend service running on port 4000.
-
 import { NextRequest, NextResponse } from 'next/server';
 import { WorkOS } from '@workos-inc/node';
-
+export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     // Get email domain from the request URL
