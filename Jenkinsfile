@@ -13,7 +13,8 @@ pipeline {
             withCredentials([file(credentialsId: 'nextjs-env', variable: 'ENV_FILE')]) {
             dir('App-Code') {
                 sh '''
-                  cp "$ENV_FILE" .env.local
+                   sudo cp "$ENV_FILE" .env.local
+                   sudo chown -R jenkins:jenkins .env.local
                   docker build -t my-app:latest .
                 '''
             }
