@@ -29,21 +29,23 @@ pipeline {
     }
 }
 
-        stage('Deploy') {
-            steps {
-                sh '''
-                  echo "Stopping any container using port 3000..."
-                  OLD_CONTAINER=$(docker ps -q --filter "publish=3000")
-                  if [ ! -z "$OLD_CONTAINER" ]; then
-                      docker stop $OLD_CONTAINER || true
-                      docker rm $OLD_CONTAINER || true
-                  fi
+       stage('Deploy') {
+    steps {
+        sh '''
+            echo "Cleaning up any existing containers..."
+            # Stop and remove any container using port 3000
+            docker ps -q --filter "publish=3000" | xargs -r docker stop
+            docker ps -a -q --filter "publish=3000" | xargs -r docker rm
 
-                  echo "Starting new container..."
-                  docker run -d --name my-app -p 3000:3000 my-app:latest
-                '''
-            }
-        }
+            # Stop and remove any container named 'my-app'
+            docker ps -a -q --filter "name=my-app" | xargs -r docker stop
+            docker ps -a -q --filter "name=my-app" | xargs -r docker rm
+
+            echo "Starting new container..."
+            docker run -d --name my-app -p 3000:3000 my-app:latest
+        '''
+    }
+}
     }
 
     post {
