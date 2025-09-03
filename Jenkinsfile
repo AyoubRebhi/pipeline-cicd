@@ -10,16 +10,16 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                withCredentials([file(credentialsId: 'nextjs-env', variable: 'ENV_FILE')]) {
-                    dir('App-Code') {
-                        sh '''
-                          cp "$ENV_FILE" .env.local
-                          docker build -t my-app:latest .
-                        '''
-                    }
-                }
+            withCredentials([file(credentialsId: 'nextjs-env', variable: 'ENV_FILE')]) {
+            dir('App-Code') {
+                sh '''
+                  cp "$ENV_FILE" .env.local
+                  docker build -t my-app:latest .
+                '''
             }
         }
+    }
+}
 
         stage('Deploy') {
             steps {
