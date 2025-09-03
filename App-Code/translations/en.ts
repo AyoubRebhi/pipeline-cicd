@@ -24,5 +24,5 @@ export default {
   "alreadyHaveAccount": "Already have an account?",
   "backToHome": "Back to Home",
   "login": "Login",
-  "dashboard": "dashboarditosh"
+  "dashboard": "Dashboard"
 } 
