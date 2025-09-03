@@ -1,38 +1,10 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs 'Node22'   // make sure NodeJS plugin is installed in Jenkins
-    }
-
     stages {
         stage('Checkout') {
             steps {
-                git branch: '*', url: 'https://github.com/AyoubRebhi/pipeline-cicd'
-            }
-        }
-
-        stage('Install dependencies') {
-            steps {
-                dir('App-Code') {
-                    sh 'npm install'
-                }
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                dir('App-Code') {
-                    sh 'npm test'
-                }
-            }
-        }
-
-        stage('Build App') {
-            steps {
-                dir('App-Code') {
-                    sh 'npm run build'
-                }
+                git branch: 'main', url: 'https://github.com/AyoubRebhi/pipeline-cicd'
             }
         }
 
@@ -41,6 +13,19 @@ pipeline {
                 dir('App-Code') {
                     sh 'docker build -t my-app:latest .'
                 }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                  echo "Stopping old container..."
+                  docker stop my-app || true
+                  docker rm my-app || true
+
+                  echo "Starting new container..."
+                  docker run -d --name my-app -p 3000:3000 my-app:latest
+                '''
             }
         }
     }
