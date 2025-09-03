@@ -14,7 +14,7 @@ pipeline {
             dir('App-Code') {
                 sh '''
                    sudo cp "$ENV_FILE" .env.local
-                   sudo chown -R jenkins:jenkins .env.local
+                   ls -l .env.local
                   docker build -t my-app:latest .
                 '''
             }
