@@ -9,13 +9,20 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            steps {
-            withCredentials([file(credentialsId: 'nextjs-env', variable: 'ENV_FILE')]) {
+    steps {
+        withCredentials([file(credentialsId: 'nextjs-env', variable: 'ENV_FILE')]) {
             dir('App-Code') {
                 sh '''
-                   cp "$ENV_FILE" .env.local
-                   ls -l .env.local
-                  docker build -t my-app:latest .
+                    # Remove existing .env.local if it exists and has restrictive permissions
+                    if [ -f .env.local ]; then
+                        chmod 644 .env.local || rm -f .env.local
+                    fi
+                    
+                    # Copy the new environment file
+                    cp "$ENV_FILE" .env.local
+                    chmod 644 .env.local
+                    ls -l .env.local
+                    docker build -t my-app:latest .
                 '''
             }
         }
