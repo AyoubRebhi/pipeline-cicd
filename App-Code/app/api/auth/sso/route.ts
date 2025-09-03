@@ -15,11 +15,12 @@ export const GET = async (request: NextRequest) => {
     
     // Get WorkOS instance
     const workos = getWorkOS();
+    console.log("Redirect URI:", process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI);
     
     // Build authorization options for fresh login
     const options: any = {
       provider: 'authkit',
-      redirectUri: process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI || 'http://localhost:3000/auth/callback',
+      redirectUri: process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI || 'http://localhost/auth/callback',
       clientId: process.env.WORKOS_CLIENT_ID,
       // Always force fresh login
       prompt: 'login',
