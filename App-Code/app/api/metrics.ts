@@ -1,3 +1,5 @@
 import { metricsHandler } from '@/lib/metrics';
 
-export default metricsHandler;
+export async function GET() {
+  return metricsHandler();
+}
