@@ -29,13 +29,12 @@ pipeline {
 
         stage('Security Scan with Trivy') {
             steps {
-                sh '''
-                    echo "Running Trivy vulnerability scan..."
-                    trivy image --format json -o trivy-report.json my-app:latest
-                '''
+                sh '/home/ec2-user/bin/trivy image --format json -o trivy-report.json my-app:latest'
                 archiveArtifacts artifacts: 'trivy-report.json', fingerprint: true
             }
         }
+}
+
 
 
         stage('Deploy') {
