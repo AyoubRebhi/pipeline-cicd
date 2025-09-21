@@ -37,20 +37,27 @@ pipeline {
         stage('Parse Trivy Report') {
             steps {
                 script {
-                    def report = readJSON file: 'trivy-report.json'
-                    def vulnerabilities = report.Results.collectMany { it.Vulnerabilities ?: [] }
+                def report = readJSON file: 'trivy-report.json'
+                def vulnerabilities = []
 
-                    def criticals = vulnerabilities.findAll { it.Severity == 'CRITICAL' }
-                    def highs = vulnerabilities.findAll { it.Severity == 'HIGH' }
-
-                    echo "Found ${criticals.size()} CRITICAL and ${highs.size()} HIGH vulnerabilities."
-
-                    if (criticals.size() > 0) {
-                        error("Build failed due to ${criticals.size()} CRITICAL vulnerabilities.")
+                report.Results.each { result ->
+                    if (result.Vulnerabilities) {
+                    vulnerabilities += result.Vulnerabilities
                     }
+                }
+
+                def criticals = vulnerabilities.findAll { it.Severity == 'CRITICAL' }
+                def highs = vulnerabilities.findAll { it.Severity == 'HIGH' }
+
+                echo "🔍 Trivy found ${criticals.size()} CRITICAL and ${highs.size()} HIGH vulnerabilities."
+
+                if (criticals.size() > 0) {
+                    error("❌ Build failed due to ${criticals.size()} CRITICAL vulnerabilities.")
+                }
                 }
             }
         }
+
 
         stage('Deploy') {
             steps {
