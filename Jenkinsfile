@@ -33,7 +33,7 @@ pipeline {
                 archiveArtifacts artifacts: 'trivy-report.json', fingerprint: true
             }
         }
-}
+
 
 
 
