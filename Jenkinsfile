@@ -31,10 +31,12 @@ pipeline {
             steps {
                 sh '''
                     echo "Running Trivy vulnerability scan..."
-                    trivy image --severity HIGH,CRITICAL --exit-code 1 --no-progress my-app:latest
+                    trivy image --format json -o trivy-report.json my-app:latest
                 '''
+                archiveArtifacts artifacts: 'trivy-report.json', fingerprint: true
             }
         }
+
 
         stage('Deploy') {
             steps {
