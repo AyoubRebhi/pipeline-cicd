@@ -14,6 +14,7 @@ const publicPaths = [
   '/auth/verify',
   '/api/auth/signout',
   '/api/auth/check-session',
+  '/api/metrics',  // Allow Prometheus to scrape metrics without auth
   '/assessment',
   '/assessment/',  // Add trailing slash variant
 ];
@@ -23,7 +24,8 @@ const freshAuthPaths = [
   '/login',
   '/auth/sso',
   '/auth/callback',
-  '/auth/sso-callback'
+  '/auth/sso-callback',
+  '/api/metrics'  // Allow Prometheus scraping without any session checks
 ];
 
 // Define paths that should never be cached (auth-related)
